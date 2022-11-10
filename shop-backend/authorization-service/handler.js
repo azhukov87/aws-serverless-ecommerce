@@ -1,4 +1,3 @@
-import axios from "axios";
 export const handler = async (event, ctx, cb) => {
   if (event["type"] != "TOKEN") {
     cb("Unauthorized");
@@ -6,9 +5,8 @@ export const handler = async (event, ctx, cb) => {
 
   try {
     const token = event.authorizationToken;
-
-    const encodedCreds = token.split[" "][1];
-    const { userName, password } = Buffer.from(encodedCreds, "base64")
+    const encodedCreds = token.split(" ")[1];
+    const [userName, password] = Buffer.from(encodedCreds, "base64")
       .toString("utf-8")
       .split(":");
 
@@ -17,7 +15,7 @@ export const handler = async (event, ctx, cb) => {
       !expectedPassword || expectedPassword != password ? "Deny" : "Allow";
 
     const policy = generatePolicy(encodedCreds, event.methodArn, effect);
-    cb(policy);
+    cb(null, policy);
   } catch (error) {
     console.log("error", error);
   }
