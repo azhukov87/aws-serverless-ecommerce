@@ -1,0 +1,42 @@
+service: import-service-product-file
+
+frameworkVersion: "3"
+
+package:
+  excludeDevDependencies: false
+
+custom:
+  bucket: zh-import-service
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+
+  # you can overwrite defaults here
+  stage: dev
+  region: eu-west-1
+  iam:
+    role:
+      statements:
+        # Allow functions to list all buckets
+        - Effect: Allow
+          Action:
+            - "s3:PutObject"
+          Resource:
+            - "arn:aws:s3:::${self:custom.bucket}/*"
+
+functions:
+  importProductsFile:
+    handler: handler.handler
+    environment:
+      BUCKET: ${self:custom.bucket}
+    events:
+      - http:
+          path: /import
+          method: get
+          authorizer:
+            name: tokenAuthorizer
+            resultTtlInSeconds: 0
+            identitySource: method.request.header.Authorization
+            type: token
+            arn: "arn:aws:lambda:${aws:region}:${aws:accountId}:function:authorization-service-${self:provider.stage}-token-authorizer"

@@ -1,0 +1,46 @@
+service: product-service
+frameworkVersion: "3"
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+  # you can overwrite defaults here
+  stage: dev
+  region: eu-west-1
+  environment:
+    DYNAMODB_PRODUCTS_TABLE: xCloud_Products
+    DYNAMODB_STOCKS_TABLE: xCloud_stocks
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.DYNAMODB_PRODUCTS_TABLE}"
+            - "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.DYNAMODB_STOCKS_TABLE}"
+
+functions:
+  getProductsList:
+    handler: handlers/getProductsList.getProductsList
+    events:
+      - http:
+          path: /products
+          method: get
+  getProductsById:
+    handler: handlers/getProductsById.getProductsById
+    events:
+      - http:
+          path: /products/{productId}
+          method: get
+  createProduct:
+    handler: handlers/createProduct.createProduct
+    events:
+      - http:
+          path: /products
+          method: put

@@ -1,0 +1,29 @@
+service: product-service-batch-processing
+frameworkVersion: "3"
+provider:
+  name: aws
+  runtime: nodejs16.x
+  stage: dev
+  region: eu-west-1
+  environment:
+    SQL_URL:
+      Ref: SQSQueue
+    CREAT_PRODUCT_URL: https://c7ofhf6e0f.execute-api.eu-west-1.amazonaws.com/dev/products
+
+functions:
+  catalogBatchProcess:
+    handler: handler.handler
+    events:
+      - sqs:
+          batchSize: 5
+          arn:
+            Fn::GetAtt:
+              - SQSQueue
+              - Arn
+
+resources:
+  Resources:
+    SQSQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "product-service-import-sqs"

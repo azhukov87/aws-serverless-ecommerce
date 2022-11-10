@@ -1,0 +1,39 @@
+service: import-service-file-parser
+
+frameworkVersion: "3"
+
+custom:
+  bucket: zh-import-service
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+
+  # you can overwrite defaults here
+  stage: dev
+  region: eu-west-1
+  iam:
+    role:
+      statements:
+        # Allow functions to list all buckets
+        - Effect: Allow
+          Action:
+            - "s3:GetObject"
+          Resource:
+            - "arn:aws:s3:::${self:custom.bucket}/*"
+        - Effect: Allow
+          Action:
+            - "sqs:*"
+          Resource:
+            - "arn:aws:sqs:${aws:region}:${aws:accountId}:product-service-import-sqs"
+
+functions:
+  importFileParser:
+    handler: handler.handler
+    events:
+      - s3:
+          bucket: ${self:custom.bucket}
+          event: s3:ObjectCreated:*
+          existing: true
+          rules:
+            - prefix: uploaded/
