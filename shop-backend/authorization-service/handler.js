@@ -6,15 +6,13 @@ export const handler = async (event, ctx, cb) => {
 
   try {
     const token = event.authorizationToken;
-    console.log("token", token);
 
     const encodedCreds = token.split[" "][1];
     const { userName, password } = Buffer.from(encodedCreds, "base64")
       .toString("utf-8")
       .split(":");
-    console.log("creds", userName, password);
-    const expectedPassword = process.env[userName];
 
+    const expectedPassword = process.env[userName];
     const effect =
       !expectedPassword || expectedPassword != password ? "Deny" : "Allow";
 
